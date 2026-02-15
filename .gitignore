@@ -1,0 +1,4 @@
+node_modules
+dist-electron
+package-lock.json
+Run.md

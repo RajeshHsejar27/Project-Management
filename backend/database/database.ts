@@ -10,15 +10,18 @@ export function getDB() {
 
   if (!db) {
 
-    const dbPath = path.join(
-      app.getPath("userData"),
-      "data.db"
-    );
+    const userDataPath =
+      app.getPath("userData");
+
+    const dbPath =
+      path.join(userDataPath, "project-manager.db");
+
+    console.log("DB PATH:", dbPath);
 
     db = new Database(dbPath);
-  
 
     initTables();
+
   }
 
   return db;
@@ -26,9 +29,50 @@ export function getDB() {
 
 function initTables() {
 
- db.exec(createTablesSQL);
+  // create base tables
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS entities (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      name TEXT NOT NULL,
+      position_x REAL,
+      position_y REAL,
+      created_at INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS relationships (
+      id TEXT PRIMARY KEY,
+      source_id TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      type TEXT,
+      created_at INTEGER
+    );
+  `);
+
+
+  // MIGRATION: add color column if missing
+  try {
+
+    db.prepare(`
+      ALTER TABLE entities
+      ADD COLUMN color TEXT DEFAULT '#1e1e1e'
+    `).run();
+
+    console.log("Color column added");
+
+  }
+  catch (err: any) {
+
+    if (!err.message.includes("duplicate column")) {
+
+      console.error(err);
+
+    }
+
+  }
 
 }
+
 
 export function testDatabase() {
 
