@@ -1,117 +1,107 @@
 
-// import React, { useState } from "react";
-// import { Handle, Position } from "reactflow";
+
+// import React from "react";
+
+// import {
+
+//   Handle,
+
+//   Position
+
+// } from "reactflow";
 
 // export default function EntityNode(props: any) {
 
-//   const { data } = props;
+//   const {
 
-//   const [showPicker, setShowPicker] =
-//     useState(false);
+//     data
 
-//   const backgroundColor =
-//     data.color || "#ffffff";
+//   } = props;
 
-//   const colors = [
-//     "#ffffff",
-//     "#dbeafe",
-//     "#dcfce7",
-//     "#fef3c7",
-//     "#fee2e2",
-//     "#ede9fe"
-//   ];
 
 //   return (
 
-//     <div style={{
+//     <div
 
-//       background: backgroundColor,
+//       onContextMenu={(e) => {
 
-//       color: "#000",
+//         e.preventDefault();
 
-//       padding: "10px",
+//         data.openContextMenu(
 
-//       borderRadius: "8px",
+//           e.clientX,
 
-//       border: "1px solid #ccc",
+//           e.clientY
 
-//       minWidth: "180px"
+//         );
 
-//     }}>
+//       }}
 
-//       <Handle type="target" position={Position.Left} />
+//       style={{
 
-//       <div style={{ fontSize: "11px" }}>
+//         background:
+
+//           data.color ||
+
+//           "#ffffff",
+
+//         padding: 10,
+
+//         border:
+
+//           "1px solid #ccc",
+
+//         borderRadius: 8,
+
+//         minWidth: 180
+
+//       }}
+
+//     >
+
+//       <Handle
+
+//         type="target"
+
+//         position={Position.Left}
+
+//       />
+
+//       <div
+
+//         style={{
+
+//           fontSize: 11
+
+//         }}
+
+//       >
+
 //         {data.type}
+
 //       </div>
 
-//       <div style={{ fontWeight: "bold" }}>
+//       <div
+
+//         style={{
+
+//           fontWeight: "bold"
+
+//         }}
+
+//       >
+
 //         {data.label}
+
 //       </div>
 
-//       <Handle type="source" position={Position.Right} />
+//       <Handle
 
-//       <div
-//         className="nodrag"
-//         onClick={(e) => {
-//           e.stopPropagation();
-//           setShowPicker(!showPicker);
-//         }}
-//         style={{
-//           marginTop: "6px",
-//           cursor: "pointer",
-//           fontSize: "12px",
-//           color: "#2563eb"
-//         }}
-//       >
-//         Color
-//       </div>
+//         type="source"
 
-//       {showPicker && (
+//         position={Position.Right}
 
-//         <div className="nodrag">
-
-//           {colors.map(color => (
-
-//             <div
-//               key={color}
-//               onClick={(e) => {
-//                 e.stopPropagation();
-//                 data.setColor(color);
-//                 setShowPicker(false);
-//               }}
-//               style={{
-//                 width: 18,
-//                 height: 18,
-//                 background: color,
-//                 display: "inline-block",
-//                 margin: 3,
-//                 border: "1px solid #999",
-//                 cursor: "pointer"
-//               }}
-//             />
-
-//           ))}
-
-//         </div>
-
-//       )}
-
-//       <div
-//         className="nodrag"
-//         onClick={(e) => {
-//           e.stopPropagation();
-//           data.delete();
-//         }}
-//         style={{
-//           marginTop: "4px",
-//           fontSize: "12px",
-//           color: "red",
-//           cursor: "pointer"
-//         }}
-//       >
-//         Delete
-//       </div>
+//       />
 
 //     </div>
 
@@ -120,18 +110,14 @@
 // }
 
 
-import React, {
-  useState
-} from "react";
 
-import {
-  Handle,
-  Position
-} from "reactflow";
+import { Handle, Position } from "reactflow";
+import { useState } from "react";
 
 export default function EntityNode(props: any) {
 
-  const { data } = props;
+  const nodeId = props.id;
+  const data = props.data;
 
   const [editing, setEditing] =
     useState(false);
@@ -139,66 +125,75 @@ export default function EntityNode(props: any) {
   const [name, setName] =
     useState(data.label);
 
-  const [showPicker, setShowPicker] =
-    useState(false);
-
-  const backgroundColor =
-    data.color || "#ffffff";
-
-  const colors = [
-    "#ffffff",
-    "#dbeafe",
-    "#dcfce7",
-    "#fef3c7",
-    "#fee2e2",
-    "#ede9fe"
-  ];
-
-
   async function saveRename() {
 
-    await data.rename(name);
+    if (!name || name.trim() === "") {
 
-    setEditing(false);
+      setEditing(false);
+      return;
+
+    }
+
+    try {
+
+      await window.entityAPI.rename(
+        nodeId,
+        name
+      );
+
+      data.onRenameLocal?.(name);
+
+      setEditing(false);
+
+      console.log(
+        "Rename success:",
+        nodeId,
+        name
+      );
+
+    }
+    catch (err) {
+
+      console.error(
+        "Rename failed:",
+        err
+      );
+
+    }
 
   }
 
-
   return (
 
-    <div style={{
+    <div
 
-      background: backgroundColor,
+      style={{
+        background: data.color || "#ffffff",
+        border: "1px solid #ccc",
+        borderRadius: 8,
+        padding: 12,
+        minWidth: 180,
+        cursor: "grab"
+      }}
 
-      color: "#000",
+    >
 
-      padding: "10px",
-
-      borderRadius: "8px",
-
-      border: "1px solid #ccc",
-
-      minWidth: "180px"
-
-    }}>
-
-      <Handle
-        type="target"
-        position={Position.Left}
-      />
+      <Handle type="target" position={Position.Left} />
 
       <div style={{
-        fontSize: "11px"
+        fontSize: 10,
+        color: "#666"
       }}>
         {data.type}
       </div>
-
 
       {editing ? (
 
         <input
 
           value={name}
+
+          autoFocus
 
           onChange={(e) =>
             setName(e.target.value)
@@ -211,9 +206,17 @@ export default function EntityNode(props: any) {
             if (e.key === "Enter")
               saveRename();
 
+            if (e.key === "Escape")
+              setEditing(false);
+
           }}
 
-          autoFocus
+          style={{
+            fontWeight: "bold",
+            fontSize: 14,
+            width: "100%",
+            border: "1px solid #999"
+          }}
 
         />
 
@@ -221,103 +224,30 @@ export default function EntityNode(props: any) {
 
         <div
 
-          onDoubleClick={() =>
-            setEditing(true)
-          }
+          onDoubleClick={() => {
+
+            console.log(
+              "Rename start:",
+              nodeId
+            );
+
+            setEditing(true);
+
+          }}
 
           style={{
             fontWeight: "bold",
-            cursor: "pointer"
+            fontSize: 14,
+            color: "#222"
           }}
 
         >
-
           {data.label}
-
         </div>
 
       )}
 
-
-      <Handle
-        type="source"
-        position={Position.Right}
-      />
-
-
-      <div
-        className="nodrag"
-        onClick={(e) => {
-
-          e.stopPropagation();
-
-          setShowPicker(
-            !showPicker
-          );
-
-        }}
-        style={{
-          fontSize: "12px",
-          color: "#2563eb",
-          cursor: "pointer"
-        }}
-      >
-        Color
-      </div>
-
-
-      {showPicker && (
-
-        <div>
-
-          {colors.map(color => (
-
-            <div
-
-              key={color}
-
-              onClick={() =>
-                data.setColor(color)
-              }
-
-              style={{
-                width: 18,
-                height: 18,
-                background: color,
-                display: "inline-block",
-                margin: 3,
-                cursor: "pointer",
-                border: "1px solid #999"
-              }}
-
-            />
-
-          ))}
-
-        </div>
-
-      )}
-
-
-      <div
-
-        className="nodrag"
-
-        onClick={() =>
-          data.delete()
-        }
-
-        style={{
-          fontSize: "12px",
-          color: "red",
-          cursor: "pointer"
-        }}
-
-      >
-
-        Delete
-
-      </div>
+      <Handle type="source" position={Position.Right} />
 
     </div>
 

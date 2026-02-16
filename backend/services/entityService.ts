@@ -142,6 +142,8 @@ export function renameEntity(
 
   const db = getDB();
 
+  console.log("DB rename:", id, name);
+
   db.prepare(`
     UPDATE entities
     SET name = ?
@@ -149,3 +151,4 @@ export function renameEntity(
   `).run(name, id);
 
 }
+

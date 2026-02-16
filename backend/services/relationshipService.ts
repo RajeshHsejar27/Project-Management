@@ -25,7 +25,8 @@ export function createRelationship(
 
   }
 
-  const id = crypto.randomUUID();
+const id = randomUUID();
+
 
   db.prepare(`
     INSERT INTO relationships (
@@ -57,16 +58,13 @@ export function getRelationships() {
   `).all();
 
 }
-
-export function deleteRelationship(
-  id: string
-) {
-
+export function deleteRelationship(id: string)
+{
   const db = getDB();
 
   db.prepare(`
     DELETE FROM relationships
     WHERE id = ?
   `).run(id);
-
 }
+

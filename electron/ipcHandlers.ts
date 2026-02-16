@@ -50,11 +50,17 @@ export function registerIPC() {
 
   ipcMain.handle("entity:delete", (_, id: string) => deleteEntity(id));
 
-  ipcMain.handle("entity:rename", (_, id: string, name: string) => {
-    console.log("Renaming entity:", id, "→", name);
+  ipcMain.handle(
+  "entity:rename",
+  (_, id: string, name: string) => {
+
+    console.log("IPC rename:", id, name);
 
     return renameEntity(id, name);
-  });
+
+  }
+);
+
 
   ipcMain.handle(
   "relationship:delete",
