@@ -68,3 +68,19 @@ export function deleteRelationship(id: string)
   `).run(id);
 }
 
+export function validateRelationships()
+{
+  const db = getDB();
+
+  db.prepare(`
+    DELETE FROM relationships
+    WHERE source_id NOT IN (
+      SELECT id FROM entities
+    )
+    OR target_id NOT IN (
+      SELECT id FROM entities
+    )
+  `).run();
+
+  console.log("Relationships validated");
+}

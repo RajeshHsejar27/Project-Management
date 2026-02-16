@@ -18,7 +18,8 @@ export function createEntity(
     200 + Math.random() * 400;
 
   // default color
-  const color = "#1e1e1e";
+  const color = "#ffffff";
+
 
   db.prepare(`
     INSERT INTO entities

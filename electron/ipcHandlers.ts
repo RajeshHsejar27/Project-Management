@@ -14,6 +14,12 @@ import {
   getRelationships,deleteRelationship
 } from "../backend/services/relationshipService";
 
+import {
+  listBackups,
+  restoreBackup
+}
+from "../backend/services/backupRestoreService";
+
 export function registerIPC() {
   // =========================
   // ENTITY HANDLERS
@@ -74,6 +80,17 @@ export function registerIPC() {
     return deleteRelationship(id);
 
   }
+);
+
+ipcMain.handle(
+  "backup:list",
+  () => listBackups()
+);
+
+ipcMain.handle(
+  "backup:restore",
+  (_, filename:string) =>
+    restoreBackup(filename)
 );
 
 }

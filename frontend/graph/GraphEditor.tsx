@@ -31,6 +31,10 @@ import { Entity } from "../../shared/types";
 
 import { SelectionMode } from "reactflow";
 
+import {
+  MiniMap
+} from "reactflow";
+
 
 export default function GraphEditor()
 {
@@ -38,6 +42,9 @@ export default function GraphEditor()
   // ============================
   // MAIN STATE
   // ============================
+
+  const [spacePressed, setSpacePressed] =
+  useState(false);
 
   const isRestoringRef = useRef(false)
 
@@ -56,6 +63,9 @@ export default function GraphEditor()
 
   const [selectedEdges, setSelectedEdges] =
     useState<Edge[]>([]);
+
+    const [theme, setTheme] =
+  useState("light");
 
 
   // ============================
@@ -206,6 +216,60 @@ function saveHistory(nodesSnapshot: Node[], edgesSnapshot: Edge[])
   );
 
 
+
+  // ============================
+  // Space pan
+  // ============================
+  useEffect(() =>
+{
+  function handleKeyDown(
+    event: KeyboardEvent
+  )
+  {
+    if (event.code === "Space")
+    {
+      setSpacePressed(true);
+
+      // prevent page scroll
+      event.preventDefault();
+    }
+  }
+
+  function handleKeyUp(
+    event: KeyboardEvent
+  )
+  {
+    if (event.code === "Space")
+    {
+      setSpacePressed(false);
+    }
+  }
+
+  window.addEventListener(
+    "keydown",
+    handleKeyDown
+  );
+
+  window.addEventListener(
+    "keyup",
+    handleKeyUp
+  );
+
+  return () =>
+  {
+    window.removeEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    window.removeEventListener(
+      "keyup",
+      handleKeyUp
+    );
+  };
+
+}, []);
+
   // ============================
   // LOAD GRAPH
   // ============================
@@ -223,13 +287,24 @@ function saveHistory(nodesSnapshot: Node[], edgesSnapshot: Edge[])
       const newNodes =
         entities.map(createNode);
 
-      const newEdges =
-        relationships.map(rel =>
-        ({
-          id: rel.id,
-          source: rel.source_id,
-          target: rel.target_id
-        }));
+  const newEdges =
+  relationships.map(rel => ({
+    id: rel.id,
+    source: rel.source_id,
+    target: rel.target_id,
+
+    label: rel.type,
+
+    style: {
+      strokeWidth: 2
+    },
+
+    labelStyle: {
+      fontSize: 12,
+      fill: "#555"
+    }
+  }));
+
 
       setNodes(newNodes);
       setEdges(newEdges);
@@ -241,6 +316,44 @@ function saveHistory(nodesSnapshot: Node[], edgesSnapshot: Edge[])
 
   }, []);
 
+
+  
+  // ============================
+  // SELECT ALL
+  // ============================
+
+useEffect(() =>
+{
+  function handleSelectAll(event: KeyboardEvent)
+  {
+    const ctrl =
+      event.ctrlKey || event.metaKey;
+
+    if (!ctrl || event.key !== "a")
+      return;
+
+    event.preventDefault();
+
+    setNodes(prev =>
+      prev.map(n =>
+      ({
+        ...n,
+        selected: true
+      }))
+    );
+  }
+
+  window.addEventListener(
+    "keydown",
+    handleSelectAll
+  );
+
+  return () =>
+    window.removeEventListener(
+      "keydown",
+      handleSelectAll
+    );
+}, []);
 
   // ============================
   // NODE CHANGE HANDLER
@@ -378,35 +491,71 @@ function saveHistory(nodesSnapshot: Node[], edgesSnapshot: Edge[])
   // ============================
   // CONNECT EDGE
   // ============================
+const onConnect: OnConnect =
+async (connection) =>
+{
+  if (
+    !connection.source ||
+    !connection.target
+  )
+    return;
 
-  const onConnect:OnConnect =
-    async connection =>
+
+  const rel =
+    await window.relationshipAPI.create(
+      connection.source,
+      connection.target,
+      "default"
+    );
+
+
+  const newEdge: Edge =
   {
-    if(!connection.source ||
-       !connection.target)
-       return;
+    id: rel.id,
 
-    const rel =
-      await window.relationshipAPI.create(
-        connection.source,
-        connection.target,
-        "default"
-      );
+    source: rel.source_id,
 
-    const newEdges =
-      [
-        ...edges,
-        {
-          id: rel.id,
-          source: rel.source_id,
-          target: rel.target_id
-        }
-      ];
+    target: rel.target_id,
 
-    setEdges(newEdges);
+    label: rel.type,
 
-    saveHistory(nodes,newEdges);
+    style:
+    {
+      strokeWidth: 2,
+      stroke: "#64748b"
+    },
+
+    labelStyle:
+    {
+      fontSize: 12,
+      fill: "#334155",
+      fontWeight: 500
+    }
   };
+
+
+  const updatedEdges =
+    [...edges, newEdge];
+
+
+  setEdges(updatedEdges);
+
+
+  // IMPORTANT: save clean history snapshot
+  saveHistory(
+    nodes.map(n => ({
+      ...n,
+      data:
+      {
+        label: n.data.label,
+        type: n.data.type,
+        color: n.data.color
+      }
+    })),
+    updatedEdges.map(e => ({ ...e }))
+  );
+
+};
 
 
   // ============================
@@ -565,26 +714,74 @@ function saveHistory(nodesSnapshot: Node[], edgesSnapshot: Edge[])
   // ============================
 
   return(
-  <div style={{width:"100%",height:"100vh"}}>
+  <div style={{width:"100%",height:"100vh",  background:
+    theme === "dark"
+      ? "#0f172a"
+      : "#f8fafc"}}>
 
     <button onClick={createNewEntity}>
       Add Entity
     </button>
 
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onNodeContextMenu={onNodeContextMenu}
-      onSelectionChange={onSelectionChange}
-      selectionOnDrag={true}
-       selectionMode={SelectionMode.Partial}
-      multiSelectionKeyCode="Shift"
-      fitView
-    >
+<button
+  onClick={() =>
+    setTheme(
+      theme === "light"
+        ? "dark"
+        : "light"
+    )
+  }
+>
+  Toggle Theme
+</button>
+
+<ReactFlow
+
+
+  nodes={nodes}
+  edges={edges}
+  nodeTypes={nodeTypes}
+
+  onNodesChange={onNodesChange}
+  onEdgesChange={onEdgesChange}
+  onConnect={onConnect}
+
+  onNodeContextMenu={onNodeContextMenu}
+  onSelectionChange={onSelectionChange}
+
+  selectionOnDrag={true}
+  selectionMode={SelectionMode.Partial}
+
+  multiSelectionKeyCode={["Shift", "Control", "Meta"]}
+
+  panOnDrag={
+  spacePressed
+    ? [0,1,2]   // enable pan with left mouse while space held
+    : [1,2]     // normal pan only middle mouse
+}
+
+  panOnScroll={false}
+
+  zoomOnScroll={true}
+  zoomOnPinch={true}
+  zoomOnDoubleClick={false}
+
+  minZoom={0.2}
+  maxZoom={2}
+
+  fitView
+>
+
+  <MiniMap
+  pannable
+  zoomable
+  position="bottom-right"
+  nodeColor={(node) =>
+    node.data?.color || "#ffffff"
+  }
+  maskColor="rgba(0,0,0,0.1)"
+/>
+
       <Background/>
       <Controls/>
     </ReactFlow>

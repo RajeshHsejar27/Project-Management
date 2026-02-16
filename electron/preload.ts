@@ -25,3 +25,17 @@ contextBridge.exposeInMainWorld("relationshipAPI", {
   list: () => ipcRenderer.invoke("relationship:list"),
   delete: (id: string) => ipcRenderer.invoke("relationship:delete", id),
 });
+
+contextBridge.exposeInMainWorld(
+  "backupAPI",
+  {
+    list: () =>
+      ipcRenderer.invoke("backup:list"),
+
+    restore: (filename:string) =>
+      ipcRenderer.invoke(
+        "backup:restore",
+        filename
+      )
+  }
+);
