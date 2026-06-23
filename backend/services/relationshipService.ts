@@ -6,81 +6,47 @@ export function createRelationship(
   targetId: string,
   type: string
 ) {
-
   const db = getDB();
-
-  // prevent duplicates
-  const existing =
-    db.prepare(`
-      SELECT id FROM relationships
-      WHERE source_id = ?
-      AND target_id = ?
-    `).get(sourceId, targetId);
+  const existing = db.prepare(`
+    SELECT id FROM relationships WHERE source_id = ? AND target_id = ?
+  `).get(sourceId, targetId);
 
   if (existing) {
-
     console.log("Relationship already exists");
-
     return existing;
-
   }
 
-const id = randomUUID();
-
-
+  const id = randomUUID();
   db.prepare(`
-    INSERT INTO relationships (
-      id,
-      source_id,
-      target_id,
-      type
-    )
-    VALUES (?, ?, ?, ?)
-  `).run(id, sourceId, targetId, type);
+    INSERT INTO relationships (id, source_id, target_id, type, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(id, sourceId, targetId, type, Date.now());
 
-  return {
-    id,
-    source_id: sourceId,
-    target_id: targetId,
-    type
-  };
-
+  return { id, source_id: sourceId, target_id: targetId, type };
 }
-
-
 
 export function getRelationships() {
-
   const db = getDB();
-
-  return db.prepare(`
-    SELECT * FROM relationships
-  `).all();
-
-}
-export function deleteRelationship(id: string)
-{
-  const db = getDB();
-
-  db.prepare(`
-    DELETE FROM relationships
-    WHERE id = ?
-  `).run(id);
+  return db.prepare(`SELECT * FROM relationships`).all();
 }
 
-export function validateRelationships()
-{
+export function deleteRelationship(id: string) {
   const db = getDB();
+  db.prepare(`DELETE FROM relationships WHERE id = ?`).run(id);
+}
 
+export function renameRelationship(id: string, type: string) {
+  const db = getDB();
+  db.prepare(`UPDATE relationships SET type = ? WHERE id = ?`).run(type, id);
+  return { id, type };
+}
+
+export function validateRelationships() {
+  const db = getDB();
   db.prepare(`
     DELETE FROM relationships
-    WHERE source_id NOT IN (
-      SELECT id FROM entities
-    )
-    OR target_id NOT IN (
-      SELECT id FROM entities
-    )
+    WHERE source_id NOT IN (SELECT id FROM entities)
+    OR target_id NOT IN (SELECT id FROM entities)
   `).run();
-
   console.log("Relationships validated");
 }

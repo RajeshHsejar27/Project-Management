@@ -1,150 +1,8 @@
-// import React, { useEffect, useRef } from "react";
-
-// interface Props {
-//   x: number;
-//   y: number;
-//   onRename: () => void;
-//   onDelete: () => void;
-//   onColor: (color: string) => void;
-//   onClose: () => void;
-// }
-
-// export default function ContextMenu({
-//   x,
-//   y,
-//   onRename,
-//   onDelete,
-//   onColor,
-//   onClose
-// }: Props) {
-
-//   const ref = useRef<HTMLDivElement>(null);
-
-//   useEffect(() => {
-
-//     function handleClickOutside(event: MouseEvent) {
-
-//       if (
-//         ref.current &&
-//         !ref.current.contains(event.target as Node)
-//       ) {
-//         onClose();
-//       }
-
-//     }
-
-// document.addEventListener(
-//   "click",
-//   handleClickOutside
-// );
-
-
-//     return () =>
-//       document.removeEventListener(
-//         "click",
-//         handleClickOutside
-//       );
-
-//   }, [onClose]);
-
-
-//   const colors = [
-//     "#ffffff",
-//     "#dbeafe",
-//     "#dcfce7",
-//     "#fef3c7",
-//     "#fee2e2",
-//     "#ede9fe"
-//   ];
-
-
-//   return (
-
-//     <div
-//       ref={ref} 
-//       style={{
-//         position: "absolute",
-//         top: y,
-//         left: x,
-//         background: "#fff",
-//         border: "1px solid #ccc",
-//         borderRadius: 6,
-//         padding: 8,
-//         boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-//         zIndex: 1000
-//       }}
-//     >
-
-// <div
-//   style={itemStyle}
-//   onMouseDown={(e) => e.stopPropagation()} // 1. Stops React Flow from grabbing the event
-//   onClick={(e) => {
-//     e.stopPropagation(); // 2. Stops the 'click outside' listener from firing
-//     onRename();
-//   }}
-// >
-//   Rename
-// </div>
-
-//       <div
-//         style={itemStyle}
-//         onClick={onDelete}
-//       >
-//         Delete
-//       </div>
-
-//       <div style={{ marginTop: 5 }}>
-
-//         Color:
-
-//         <div>
-
-//           {colors.map(color => (
-
-//             <span
-//               key={color}
-//               onClick={() =>
-//                 onColor(color)
-//               }
-//               style={{
-//                 ...colorStyle,
-//                 background: color
-//               }}
-//             />
-
-//           ))}
-
-//         </div>
-
-//       </div>
-
-//     </div>
-
-//   );
-
-// }
-
-// const itemStyle = {
-//   padding: "4px 8px",
-//   cursor: "pointer"
-// };
-
-// const colorStyle = {
-//   width: 16,
-//   height: 16,
-//   display: "inline-block",
-//   margin: 3,
-//   border: "1px solid #999",
-//   cursor: "pointer"
-// };
-
-
 import React, { useEffect, useRef } from "react";
 
 interface Props {
   x: number;
   y: number;
-//   onRename: (e: React.MouseEvent) => void; // Pass the event
   onDelete: (e: React.MouseEvent) => void;
   onColor: (color: string, e: React.MouseEvent) => void;
   onClose: () => void;
@@ -159,58 +17,36 @@ export default function ContextMenu({ x, y, onDelete, onColor, onClose }: Props)
         onClose();
       }
     }
-    document.addEventListener("mousedown", handleClickOutside); // Use mousedown for faster response
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  const colors = ["#ffffff", "#dbeafe", "#dcfce7", "#fef3c7", "#fee2e2", "#ede9fe"];
+  const colors = [
+    "#7c3aed", "#3b82f6", "#22c55e", "#eab308", "#f97316", "#ec4899", "#06b6d4", "#6366f1", "#64748b",
+  ];
 
   return (
     <div
       ref={ref}
-      style={{
-        position: "absolute",
-        top: y,
-        left: x,
-        background: "#fff",
-        border: "1px solid #ccc",
-        borderRadius: 6,
-        padding: 8,
-        boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-        zIndex: 1000,
-      }}
-      onContextMenu={(e) => e.preventDefault()} // Block nested context menus
+      className="absolute bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 p-2 min-w-[140px]"
+      style={{ top: y, left: x }}
+      onContextMenu={(e) => e.preventDefault()}
     >
-
-
-{/* 
-<div 
-  style={itemStyle} 
-  onMouseDown={(e) => {
-    e.stopPropagation(); // Stop React Flow from seeing this
-    e.preventDefault();  // Stop browser defaults
-    console.log("LOG TEST: MOUSE DOWN ON RENAME"); 
-    onRename(e);
-  }}
->
-  Rename
-</div> */}
-
-      <div 
-        style={itemStyle} 
-        onClick={(e) => onDelete(e)}
+      <div
+        className="px-2 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer transition-colors"
+        onClick={onDelete}
       >
         Delete
       </div>
-
-      <div style={{ marginTop: 5, fontSize: "12px", color: "#666" }}>
-        Color:
-        <div style={{ marginTop: 4 }}>
+      <div className="mt-1 pt-1 border-t border-slate-100 dark:border-slate-700">
+        <div className="px-2 py-1 text-[10px] text-slate-400 uppercase tracking-wider">Color</div>
+        <div className="flex flex-wrap gap-1 px-2 py-1">
           {colors.map((color) => (
             <span
               key={color}
               onClick={(e) => onColor(color, e)}
-              style={{ ...colorStyle, background: color }}
+              className="w-5 h-5 rounded-full cursor-pointer border border-slate-200 dark:border-slate-600 hover:scale-110 transition-transform"
+              style={{ backgroundColor: color }}
             />
           ))}
         </div>
@@ -218,6 +54,3 @@ export default function ContextMenu({ x, y, onDelete, onColor, onClose }: Props)
     </div>
   );
 }
-
-const itemStyle = { padding: "4px 8px", cursor: "pointer", fontSize: "14px" };
-const colorStyle = { width: 16, height: 16, display: "inline-block", margin: 2, border: "1px solid #999", cursor: "pointer", borderRadius: "2px" };
